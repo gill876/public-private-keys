@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from socket import *
 import sys
+import nacl.utils
+from nacl.public import PrivateKey, Box
 
 args = sys.argv
 
@@ -18,6 +20,13 @@ serverPort = 5687
 clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.connect((serverHost, serverPort))
 
-clientSocket.send("hello world!".encode())
+client_secretKey = PrivateKey.generate()
 
+message = "hello world!"
+
+clientSocket.send(message.encode())
+
+fromServer = clientSocket.recv(1024).decode('utf-8')
+
+print(fromServer)
 clientSocket.close()

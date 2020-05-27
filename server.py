@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from socket import *
 import sys
+import nacl.utils
+from nacl.public import PrivateKey, Box
 
 args = sys.argv
 
@@ -24,5 +26,7 @@ with socket(AF_INET, SOCK_STREAM) as s:
     fromClient = conn.recv(1024).decode('utf-8')
 
     print(fromClient)
+    message = "hello there!"
+    conn.send(message.encode())
 
     conn.close()
