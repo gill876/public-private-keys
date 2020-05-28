@@ -13,9 +13,7 @@ Communication between a server and a client using Public Private Key Encryption 
     ```python3 server.py```
 5. Run client:
     ```python3 client.py```
-
-Currently, the message that will be sent over is:
-
-*hello world*
+6. Enter message in client
+7. Enter *exit(0)* in client to **quit**
 
 Thanks! :smile:
