@@ -26,8 +26,10 @@ def getKeys(key_name='server_key'):
     if os.path.exists((key_name + '.key')):
         privateKey = loadKey(key_name)
         publicKey = privateKey.public_key
+        print("**key retrieved")
     else:
         saveKey(key_name)
+        print("**key generated")
         getKeys(key_name)
 
 def main(listeners=1):
@@ -50,7 +52,7 @@ def main(listeners=1):
                 conn.send("send client key".encode()) #SEND
                 #receives public key from client in bytes
                 fromClient = conn.recv(1024) #RECEIVE
-                print("received public key")
+                print("**received public key")
 
                 #create public key object from client
                 client_pubObj = PublicKey(fromClient)
@@ -59,7 +61,7 @@ def main(listeners=1):
                 send_publicKey = publicKey.__bytes__()
                 #sends over public key
                 conn.send(send_publicKey) #SEND
-                print("sent public key")
+                print("**sent public key")
 
                 #create server box
                 server_box = Box(privateKey, client_pubObj)
@@ -67,12 +69,12 @@ def main(listeners=1):
                 while True:
                     #receive encrypted message
                     encrypted = conn.recv(1024) #RECEIVE
-                    print("received encrypted message")
+                    print("**received encrypted message")
 
                     message = server_box.decrypt(encrypted)
                     message = message.decode('utf-8')
                     if message == "exit(0)":
-                        print("client ended communication")
+                        print("**client ended communication")
                         break
 
                     print("client: ", message)
@@ -84,7 +86,7 @@ def main(listeners=1):
                 conn.send("error, please send client key".encode()) #SEND
 
         conn.close()
-        print("closed connection")
+        print("**closed connection")
 
 if __name__ == "__main__":
     main()
