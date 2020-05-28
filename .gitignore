@@ -7,3 +7,6 @@ venv
 
 #PyCache
 __pycache__
+
+#Key files
+*.key
