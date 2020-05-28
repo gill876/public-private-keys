@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from socket import *
-import sys
-import nacl.utils
+import sys, os
+from keyM import saveKey, loadKey
 from nacl.public import PrivateKey, Box, PublicKey
 
 args = sys.argv
@@ -16,41 +16,75 @@ if len(args) == 3:
 
 HOST = ''
 PORT = 5687
+privateKey = None
+publicKey = None
 
-#generate private and public keys
-privateKey = PrivateKey.generate()
-publicKey = privateKey.public_key
+def getKeys(key_name='server_key'):
+    global privateKey
+    global publicKey
 
-with socket(AF_INET, SOCK_STREAM) as s:
-    s.bind((HOST, PORT))
-    s.listen(1)
-    conn, addr = s.accept()
-    print("Connection from: ", addr)
+    if os.path.exists((key_name + '.key')):
+        privateKey = loadKey(key_name)
+        publicKey = privateKey.public_key
+    else:
+        saveKey(key_name)
+        getKeys(key_name)
 
-    #receives public key from client in bytes
-    fromClient = conn.recv(1024) #RECEIVE
+def main(listeners=1):
+    global HOST
+    global PORT
+    global privateKey
+    global publicKey
 
-    print("received public key")
+    getKeys()
+    
+    with socket(AF_INET, SOCK_STREAM) as s:
+        s.bind((HOST, PORT))
+        s.listen(listeners)
+        conn, addr = s.accept()
 
-    #create public key object from client
-    client_pubKey = PublicKey(fromClient)
+        with conn:
+            print("Connection from: ", addr)
+            fromClient = conn.recv(1024).decode('utf-8') #RECEIVE
+            if fromClient == "sending client key":
+                conn.send("send client key".encode()) #SEND
+                #receives public key from client in bytes
+                fromClient = conn.recv(1024) #RECEIVE
+                print("received public key")
 
-    #get public key in bytes
-    send_publicKey = publicKey.__bytes__()
+                #create public key object from client
+                client_pubObj = PublicKey(fromClient)
 
-    #create server box
-    server_box = Box(privateKey, client_pubKey)
+                #get public key in bytes
+                send_publicKey = publicKey.__bytes__()
+                #sends over public key
+                conn.send(send_publicKey) #SEND
+                print("sent public key")
 
-    #sends over public key
-    conn.send(send_publicKey) #SEND
-    print("sent public key")
+                #create server box
+                server_box = Box(privateKey, client_pubObj)
 
-    #receive encrypted message
-    encrypted = conn.recv(1024) #RECEIVE
-    print("received encrypted message")
+                while True:
+                    #receive encrypted message
+                    encrypted = conn.recv(1024) #RECEIVE
+                    print("received encrypted message")
 
-    message = server_box.decrypt(encrypted)
-    print(message.decode('utf-8'))
+                    message = server_box.decrypt(encrypted)
+                    message = message.decode('utf-8')
+                    if message == "exit(0)":
+                        print("client ended communication")
+                        break
 
-    conn.close()
-    print("closed connection")
+                    print("client: ", message)
+                    message = message + " - read by server"
+                    encrypted = server_box.encrypt(bytes(message,'utf-8'))
+                    #send encrypted message
+                    conn.send(encrypted) #SEND
+            else:
+                conn.send("error, please send client key".encode()) #SEND
+
+        conn.close()
+        print("closed connection")
+
+if __name__ == "__main__":
+    main()

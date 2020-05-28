@@ -34,8 +34,10 @@ def getKeys(key_name='client_key'):
     if os.path.exists((key_name + '.key')):
         privateKey = loadKey(key_name)
         publicKey = privateKey.public_key
+        print("**key retrieved")
     else:
         saveKey(key_name)
+        print("**key generated")
         getKeys(key_name)
 
 def initServerConnect():
@@ -53,15 +55,15 @@ def initServerConnect():
 
         #sends over public key
         clientSocket.send(send_publicKey) #SEND
-        print("sent client public key")
+        print("**sent client public key")
 
         #receives public key from server in bytes
         server_publicKey = clientSocket.recv(1024) #RECEIVE
         #create public key object from server
         server_pubObj = PublicKey(server_publicKey)
-        print("received server public key")
+        print("**received server public key")
     else:
-        print("public key was not sent")
+        print("**public key was not sent")
         print("server: ", fromServer)
 
 
@@ -81,7 +83,7 @@ def sendMessage(message="hello world"):
 
     #send encrypted message
     clientSocket.send(encrypted) #SEND
-    print("sent encrypted message")
+    print("**sent encrypted message")
 
 def main():
     global clientSocket
@@ -93,23 +95,23 @@ def main():
         while True:
             message = input("Enter message to send to the server: ")
             if message == "exit(0)":
-                print("closing client")
+                print("**closing client")
                 sendMessage(message)
                 break
 
             sendMessage(message)
-            print("message sent to server")
+            print("**message sent to server")
 
             response = clientSocket.recv(1024) #RECEIVE
             response = client_box.decrypt(response)
             print("server: ", response.decode('utf-8'))
 
     except Exception as e:
-        print("something went wrong:")
+        print("**something went wrong:")
         print(e)
     finally:
         clientSocket.close()
-        print("closed connection")
+        print("**closed connection")
 
 if __name__ == "__main__":
     main()
