@@ -4,3 +4,6 @@ venv
 
 #VSCode
 .vscode
+
+#PyCache
+__pycache__
