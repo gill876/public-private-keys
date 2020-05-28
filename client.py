@@ -62,6 +62,7 @@ def initServerConnect():
         print("received server public key")
     else:
         print("public key was not sent")
+        print("server: ", fromServer)
 
 
 def createBox():
@@ -93,12 +94,15 @@ def main():
             message = input("Enter message to send to the server: ")
             if message == "exit(0)":
                 print("closing client")
+                sendMessage(message)
                 break
 
             sendMessage(message)
             print("message sent to server")
-            response = clientSocket.recv(1024).decode('utf-8')
-            print("server: ", response)
+
+            response = clientSocket.recv(1024) #RECEIVE
+            response = client_box.decrypt(response)
+            print("server: ", response.decode('utf-8'))
 
     except Exception as e:
         print("something went wrong:")
