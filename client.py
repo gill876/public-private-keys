@@ -31,7 +31,7 @@ def getKeys(key_name='client_key'):
     global privateKey
     global publicKey
 
-    if os.path.exists((key_name + '.key')):
+    if os.path.exists((key_name + '.pttk')):
         privateKey = loadKey(key_name)
         publicKey = privateKey.public_key
         print("**key retrieved")
